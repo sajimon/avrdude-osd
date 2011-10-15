@@ -1,0 +1,224 @@
+--- avrdude-5.11.1-orig/Makefile.am	2011-09-15 14:37:05.000000000 +0000
++++ avrdude-5.11.1/Makefile.am	2011-10-14 18:59:05.277618014 +0000
+@@ -159,7 +159,8 @@
+ avrdude_SOURCES = \
+ 	main.c \
+ 	term.c \
+-	term.h
++	term.h \
++	osd.c
+ 
+ man_MANS = avrdude.1
+ 
+--- avrdude-5.11.1-orig/osd.c	1970-01-01 00:00:00.000000000 +0000
++++ avrdude-5.11.1/osd.c	2011-10-15 18:49:23.287668410 +0000
+@@ -0,0 +1,55 @@
++/*
++ * osd.c
++ *
++ *  Created on: 14-10-2011
++ *      Author: sajmon
++ */
++
++#include <string.h>
++#include "osd.h"
++
++
++
++#ifdef ENABLE_OSD
++
++xosd* osdOut = 0;
++avrOsdConfiguration osdConfig = {"-*-lucida-*-r-*-*-34-*-*-*-*-*-iso8859-1","plum4",XOSD_right,XOSD_top,200,300};
++char headerMemo[10];
++
++void avrosd_create_object()
++{
++	if(osdOut == 0)
++	{
++		osdOut = xosd_create(2);
++	}
++}
++
++void avrosd_destroy_object()
++{
++	if(osdOut) xosd_destroy(osdOut);
++}
++
++
++void avrosd_update_percent(const char* header, int perc)
++{
++	if(header)
++	{
++		xosd_display(osdOut,0,XOSD_printf,"%d%% %s",perc,header);
++		if(strlen(header)<10) strcpy(headerMemo,header);
++
++	}else xosd_display(osdOut,0,XOSD_printf,"%d%% %s",perc,headerMemo);
++	xosd_display(osdOut,1,XOSD_percentage,perc);
++}
++
++void avrosd_apply_configuration(avrOsdConfiguration* confPtr)
++{
++	xosd_set_bar_length(osdOut, 20);
++	xosd_set_font(osdOut, confPtr->font /*"-*-lucida-*-r-*-*-34-*-*-*-*-*-iso8859-1"*/);
++	xosd_set_colour(osdOut,confPtr->color/*"plum1"*/);
++	xosd_set_align(osdOut,confPtr->align);
++	xosd_set_horizontal_offset(osdOut,confPtr->hOffset);
++	xosd_set_pos(osdOut,confPtr->pos);
++	xosd_set_vertical_offset(osdOut,confPtr->vOffset);
++}
++
++#endif
+--- avrdude-5.11.1-orig/osd.h	1970-01-01 00:00:00.000000000 +0000
++++ avrdude-5.11.1/osd.h	2011-10-15 18:48:45.337668339 +0000
+@@ -0,0 +1,39 @@
++/*
++ * osd.h
++ *
++ *  Created on: 14-10-2011
++ *      Author: sajmon
++ */
++
++#ifndef OSD_H_
++#define OSD_H_
++
++#include <xosd.h>
++#include "config.h"
++#include "ac_cfg.h"
++
++typedef struct
++{
++	char* font ;
++	char* color;
++	xosd_align align;
++	xosd_pos pos;
++	int hOffset;
++	int vOffset;
++} avrOsdConfiguration;
++
++extern xosd* osdOut;
++extern avrOsdConfiguration osdConfig;
++
++
++
++void avrosd_create_object();
++void avrosd_destroy_object();
++void avrosd_update_percent(const char* header, int perc);
++void avrosd_apply_configuration(avrOsdConfiguration* confPtr);
++
++
++#endif /* OSD_H_ */
++
++
++
+--- avrdude-5.11.1-orig/avr.c	2011-09-15 14:57:51.000000000 +0000
++++ avrdude-5.11.1/avr.c	2011-10-15 18:17:45.867664993 +0000
+@@ -38,6 +38,8 @@
+ #include "safemode.h"
+ #include "update.h"
+ #include "tpi.h"
++#include "osd.h"
++
+ 
+ FP_UpdateProgress update_progress;
+ 
+@@ -1003,6 +1005,10 @@
+   struct timeval tv;
+   double t;
+ 
++  #ifdef ENABLE_OSD
++    avrosd_update_percent(hdr, percent);
++  #endif
++
+   if (update_progress == NULL)
+     return;
+ 
+@@ -1023,6 +1029,8 @@
+     update_progress (percent, t - start_time, hdr);
+   }
+ 
++
++
+   if (percent == 100)
+     last = 0;                   /* Get ready for next time. */
+ }
+--- avrdude-5.11.1-orig/main.c	2011-09-15 14:37:05.000000000 +0000
++++ avrdude-5.11.1/main.c	2011-10-15 18:18:03.917665029 +0000
+@@ -55,6 +55,7 @@
+ #include "term.h"
+ #include "safemode.h"
+ #include "update.h"
++#include "osd.h"
+ 
+ 
+ /* Get VERSION from ac_cfg.h */
+@@ -134,6 +135,9 @@
+   static int last = 0;
+   int i;
+ 
++
++
++
+   setvbuf(stderr, (char*)NULL, _IONBF, 0);
+ 
+   hashes[50] = 0;
+@@ -397,6 +401,26 @@
+     return 0;
+   }
+ 
++#ifdef ENABLE_OSD
++
++  /*
++   * Initialize and configure XOSD.
++   */
++
++  avrosd_create_object();
++  avrosd_apply_configuration(&osdConfig);
++
++//  for (i = 0; i < 100; ++i)
++//  {
++//	avrosd_update_percent("Writing",100);
++//
++//  }
++//	sleep(3);
++//  goto main_exit;
++
++#endif
++
++
+ 
+   /*
+    * process command line arguments
+@@ -1265,5 +1289,10 @@
+     fprintf(stderr, "\n%s done.  Thank you.\n\n", progname);
+   }
+ 
++
++#ifdef ENABLE_OSD
++  avrosd_destroy_object();
++#endif
++
+   return exitrc;
+ }
+--- avrdude-5.11.1-orig/configure.ac	2011-09-15 15:02:16.000000000 +0000
++++ avrdude-5.11.1/configure.ac	2011-10-15 16:14:10.347651649 +0000
+@@ -230,6 +230,20 @@
+ AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)
+ AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
+ 
++AC_ARG_ENABLE([osd],AC_HELP_STRING(
++		[--enable-osd],
++		[Enable progress output via ]),
++		[case "${enableval}" in
++			yes) enabled_osd=yes ;;
++			no)  enabled_osd=no ;;
++			*)   AC_MSG_ERROR(bad value ${enableval} for disable-doc option) ;;
++		esac], enable_osd=no)
++
++if test "$enabled_osd" = "yes"; then 
++	AC_CHECK_LIB([xosd],[xosd_create],,AC_MSG_ERROR([Xosd library not found.]))
++	AC_DEFINE([ENABLE_OSD],[],[Enable Xosd support])
++fi
++
+ 
+ # Find the parallel serial device files based on target system
+ # If a system doesn't have a PC style parallel, mark it as unknown.
