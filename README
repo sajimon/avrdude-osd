@@ -7,8 +7,17 @@ This patch apply osd progress display of avrdude programming tool.
 Example video:
 http://www.youtube.com/watch?v=FfPgpg37Vf0
 
+Installation:
+Patch is tested and confirmed working against avrdude-5.11.
+ 1) unpack Your avrdude sources anywhere You like
+ 2) copy osd.patch into source directiory 
+ 3) apply patch by invoking "patch -p1 < osd.patch"
+ 4) configure sources "./configure --enable-osd" 
+ 5) compile & install.
+
 
 TODO:
+- user configuration (atm everything is hardcoded) 
 - error handling
 
 
