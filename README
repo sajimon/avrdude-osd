@@ -1,6 +1,14 @@
-See the documentation file for the details.
+AVRDUDE-OSD
+**************************
 
-The latest version of AVRDUDE is always available here:
+Description:
+This patch apply osd progress display of avrdude programming tool. 
 
-  http://savannah.nongnu.org/projects/avrdude
+Example video:
+http://www.youtube.com/watch?v=FfPgpg37Vf0
+
+
+TODO:
+- error handling
+
 
