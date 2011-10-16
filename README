@@ -7,6 +7,9 @@ This patch applies osd progress display of avrdude programming tool.
 Example video:
 http://www.youtube.com/watch?v=FfPgpg37Vf0
 
+Dependencies:
+Patch depends on Xosd library, therefore it's for linux only.
+
 Installation:
 Patch is tested and confirmed working against avrdude-5.11.
  1) unpack Your avrdude sources anywhere You like
