@@ -13,13 +13,6 @@
 --- avrdude-5.11.1-orig/osd.c	1970-01-01 00:00:00.000000000 +0000
 +++ avrdude-5.11.1/osd.c	2011-10-15 18:49:23.287668410 +0000
 @@ -0,0 +1,55 @@
-+/*
-+ * osd.c
-+ *
-+ *  Created on: 14-10-2011
-+ *      Author: sajmon
-+ */
-+
 +#include <string.h>
 +#include "osd.h"
 +
@@ -71,13 +64,6 @@
 --- avrdude-5.11.1-orig/osd.h	1970-01-01 00:00:00.000000000 +0000
 +++ avrdude-5.11.1/osd.h	2011-10-15 18:48:45.337668339 +0000
 @@ -0,0 +1,39 @@
-+/*
-+ * osd.h
-+ *
-+ *  Created on: 14-10-2011
-+ *      Author: sajmon
-+ */
-+
 +#ifndef OSD_H_
 +#define OSD_H_
 +
